@@ -2,16 +2,18 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
+interface SimpleMarkerSettings {
 	mySetting: string;
+	customTag: string[];
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: SimpleMarkerSettings = {
+	mySetting: 'default',
+	customTag: []
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class ObisidianSimpleMarker extends Plugin {
+	settings: SimpleMarkerSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -82,6 +84,32 @@ export default class MyPlugin extends Plugin {
 
 	}
 
+	private handleWraperComand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPrefixIndentifyingSubstring?: string) {
+		const cursor = editor.getCursor();
+		const lineNUmber = cursor.line;
+		let line = editor.getLine(lineNUmber);
+
+		const selection = editor.getSelection();
+		let isSelection = false;
+
+		if (Selection.trim() !== '') {
+			isSelection = true;
+			line = selection;
+		}
+
+		if (line.trim() === '') {
+			editor.replaceSelection(wrapPrefix);
+			return;
+			
+		}
+
+	}
+
+	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIndentifyingSubstring?: string) {
+		
+		
+	}
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
@@ -108,9 +136,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: ObisidianSimpleMarker;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ObisidianSimpleMarker) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
