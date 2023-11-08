@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS: SimpleMarkerSettings = {
 	customTag: []
 }
 
-export default class ObisidianSimpleMarker extends Plugin {
+export default class SimpleMarker extends Plugin {
 	settings: SimpleMarkerSettings;
 
 	async onload() {
@@ -68,7 +68,7 @@ export default class ObisidianSimpleMarker extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SimpleMakerSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -78,21 +78,20 @@ export default class ObisidianSimpleMarker extends Plugin {
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+
+		
 	}
-
-	onunload() {
-
-	}
-
-	private handleWraperComand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPrefixIndentifyingSubstring?: string) {
+	
+	private handleWraperComand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string,wrapPrefixIndentifyingSubstring?: string) {
 		const cursor = editor.getCursor();
-		const lineNUmber = cursor.line;
-		let line = editor.getLine(lineNUmber);
+		const cursorLineNumber = cursor.line;
+		let cursorIndex = cursor.ch;
+		let line = editor.getLine(cursorLineNumber);
 
 		const selection = editor.getSelection();
 		let isSelection = false;
 
-		if (Selection.trim() !== '') {
+		if (selection.trim() != '') {
 			isSelection = true;
 			line = selection;
 		}
@@ -103,11 +102,26 @@ export default class ObisidianSimpleMarker extends Plugin {
 			
 		}
 
+		const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIndentifyingSubstring);
+
+		if (isSelection) {
+			editor.replaceSelection(wrappedLine);
+		} else {
+			editor.setLine(cursorLineNumber, wrappedLine);
+
+		const isNowWrapped = (wrappedLine.length - line.length) > 0;
+		cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
+		editor.setCursor(cursorLineNumber, cursorIndex);
+
+	}
+	
+	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIndentifyingSubstring?: string) {
+		const wrapPrefixIndex = content.indexOf(wrapPrefixIndentifyingSubstring || wrapPrefix);
+		
 	}
 
-	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIndentifyingSubstring?: string) {
-		
-		
+	onunload() {
+
 	}
 
 	async loadSettings() {
@@ -135,10 +149,10 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: ObisidianSimpleMarker;
+class SimpleMakerSettingTab extends PluginSettingTab {
+	plugin: SimpleMarker;
 
-	constructor(app: App, plugin: ObisidianSimpleMarker) {
+	constructor(app: App, plugin: SimpleMarker) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
