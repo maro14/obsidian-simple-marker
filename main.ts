@@ -79,7 +79,30 @@ export default class SimpleMarker extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 
+		// Add marker-specific commands
+		this.addCommand({
+			id: 'mark-highlight',
+			name: 'Highlight text',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				this.handleWraperComand(editor, view, '==', '==');
+			}
+		});
 		
+		this.addCommand({
+			id: 'mark-bold',
+			name: 'Bold text',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				this.handleWraperComand(editor, view, '**', '**');
+			}
+		});
+		
+		this.addCommand({
+			id: 'mark-italic',
+			name: 'Italic text',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				this.handleWraperComand(editor, view, '_', '_');
+			}
+		});
 	}
 	
 	private handleWraperComand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string,wrapPrefixIndentifyingSubstring?: string) {
@@ -188,30 +211,4 @@ class SimpleMakerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 	}
-}
-
-// Add marker-specific commands
-this.addCommand({
-	id: 'mark-highlight',
-	name: 'Highlight text',
-	editorCallback: (editor: Editor, view: MarkdownView) => {
-		this.handleWraperComand(editor, view, '==', '==');
-	}
-});
-
-this.addCommand({
-	id: 'mark-bold',
-	name: 'Bold text',
-	editorCallback: (editor: Editor, view: MarkdownView) => {
-		this.handleWraperComand(editor, view, '**', '**');
-	}
-});
-
-this.addCommand({
-	id: 'mark-italic',
-	name: 'Italic text',
-	editorCallback: (editor: Editor, view: MarkdownView) => {
-		this.handleWraperComand(editor, view, '_', '_');
-	}
-});
 }
