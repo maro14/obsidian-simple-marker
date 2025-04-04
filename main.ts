@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface SimpleMarkerSettings {
 	defaultMarker: string;
@@ -41,8 +41,9 @@ export default class SimpleMarker extends Plugin {
 		// Add commands for custom tags
 		this.settings.customTags.forEach((tag, index) => {
 			if (tag.trim()) {
-				const [prefix, postfix] = tag.split('|');
-				if (prefix && postfix) {
+				const parts = tag.split('|');
+				if (parts.length === 2 && parts[0] && parts[1]) {
+					const [prefix, postfix] = parts;
 					this.addCommand({
 						id: `mark-custom-${index}`,
 						name: `Mark with ${prefix}...${postfix}`,
@@ -50,6 +51,8 @@ export default class SimpleMarker extends Plugin {
 							this.handleWrapperCommand(editor, view, prefix, postfix);
 						}
 					});
+				} else {
+					console.warn(`Simple Marker: Invalid custom tag format at index ${index}: "${tag}". Expected format: "prefix|postfix"`);
 				}
 			}
 		});
@@ -98,55 +101,68 @@ export default class SimpleMarker extends Plugin {
 	}
 	
 	private handleWrapperCommand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
-		const cursor = editor.getCursor();
-		const cursorLineNumber = cursor.line;
-		let cursorIndex = cursor.ch;
-		let line = editor.getLine(cursorLineNumber);
-	
-		const selection = editor.getSelection();
-		let isSelection = false;
-	
-		if (selection.trim() != '') {
-			isSelection = true;
-			line = selection;
-		}
-	
-		if (line.trim() === '') {
-			editor.replaceSelection(wrapPrefix);
-			return;
-			
-		}
-	
-		const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIdentifyingSubstring);
-	
-		if (isSelection) {
-			editor.replaceSelection(wrappedLine);
-		} else {
-			editor.setLine(cursorLineNumber, wrappedLine);
-	
-			const isNowWrapped = (wrappedLine.length - line.length) > 0;
-			cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
-			editor.setCursor(cursorLineNumber, cursorIndex);
+		try {
+			const cursor = editor.getCursor();
+			const cursorLineNumber = cursor.line;
+			let cursorIndex = cursor.ch;
+			let line = editor.getLine(cursorLineNumber);
+		
+			const selection = editor.getSelection();
+			let isSelection = false;
+		
+			if (selection.trim() != '') {
+				isSelection = true;
+				line = selection;
+			}
+		
+			if (line.trim() === '') {
+				editor.replaceSelection(wrapPrefix);
+				return;
+			}
+		
+			const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIdentifyingSubstring);
+		
+			if (isSelection) {
+				editor.replaceSelection(wrappedLine);
+			} else {
+				editor.setLine(cursorLineNumber, wrappedLine);
+		
+				const isNowWrapped = (wrappedLine.length - line.length) > 0;
+				cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
+				editor.setCursor(cursorLineNumber, cursorIndex);
+			}
+		} catch (error) {
+			console.error('Simple Marker: Error in handleWrapperCommand', error);
+			new Notice('Error applying marker. Check console for details.');
 		}
 	}
 	
 	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
-		const wrapPrefixIndex = content.indexOf(wrapPrefixIdentifyingSubstring || wrapPrefix);
-		const wrapPostfixIndex = content.indexOf(wrapPostfix);
-		const isWrapped = wrapPrefixIndex != -1 && wrapPostfixIndex != -1 && wrapPrefixIndex < wrapPostfixIndex;
-	
-		let resolvedContent = content;
-	
-		if (isWrapped) {
-			const beforeWrap = content.slice(0, wrapPrefixIndex);
-			const wrappedContent = content.slice(wrapPrefixIndex + wrapPrefix.length, wrapPostfixIndex);
-			const afterPostfixContent = content.slice(wrapPostfixIndex + wrapPostfix.length);
-			resolvedContent = beforeWrap + wrappedContent + afterPostfixContent;
-		} else {
-			resolvedContent = wrapPrefix + content + wrapPostfix;
-		}
+		try {
+			if (!wrapPrefix || !wrapPostfix) {
+				throw new Error('Invalid marker: prefix or postfix is empty');
+			}
+			
+			const wrapPrefixIndex = content.indexOf(wrapPrefixIdentifyingSubstring || wrapPrefix);
+			const wrapPostfixIndex = content.lastIndexOf(wrapPostfix);
+			const isWrapped = wrapPrefixIndex != -1 && wrapPostfixIndex != -1 && wrapPrefixIndex < wrapPostfixIndex;
 		
-		return resolvedContent;
+			let resolvedContent = content;
+		
+			if (isWrapped) {
+				const beforeWrap = content.slice(0, wrapPrefixIndex);
+				const wrappedContent = content.slice(wrapPrefixIndex + wrapPrefix.length, wrapPostfixIndex);
+				const afterPostfixContent = content.slice(wrapPostfixIndex + wrapPostfix.length);
+				resolvedContent = beforeWrap + wrappedContent + afterPostfixContent;
+			} else {
+				resolvedContent = wrapPrefix + content + wrapPostfix;
+			}
+			
+			return resolvedContent;
+		} catch (error) {
+			console.error('Simple Marker: Error in toggleContentWrap', error);
+			throw error; // Re-throw to be handled by the caller
+		}
 	}
 	
 	onunload() {
@@ -196,21 +212,32 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 		
 		// Display existing custom tags
 		this.plugin.settings.customTags.forEach((tag, index) => {
-			new Setting(containerEl)
-				.setName(`Custom tag ${index + 1}`)
-				.addText(text => text
-					.setValue(tag)
-					.onChange(async (value) => {
-						this.plugin.settings.customTags[index] = value;
-						await this.plugin.saveSettings();
-					}))
-				.addButton(button => button
-					.setButtonText('Remove')
-					.onClick(async () => {
-						this.plugin.settings.customTags.splice(index, 1);
-						await this.plugin.saveSettings();
-						this.display();
-					}));
+			const setting = new Setting(containerEl)
+				.setName(`Custom tag ${index + 1}`);
+				
+			// Validate tag format and show warning if invalid
+			const isValidFormat = tag.includes('|') && tag.split('|').length === 2 && 
+									tag.split('|')[0].trim() !== '' && tag.split('|')[1].trim() !== '';
+							
+			if (tag && !isValidFormat) {
+				setting.setDesc('⚠️ Invalid format. Please use prefix|postfix format.');
+				setting.settingEl.addClass('simple-marker-invalid-tag');
+			}
+			
+			setting.addText(text => text
+				.setValue(tag)
+				.onChange(async (value) => {
+					this.plugin.settings.customTags[index] = value;
+					await this.plugin.saveSettings();
+					this.display(); // Refresh to update validation
+				}))
+			.addButton(button => button
+				.setButtonText('Remove')
+				.onClick(async () => {
+					this.plugin.settings.customTags.splice(index, 1);
+					await this.plugin.saveSettings();
+					this.display();
+				}));
 		});
 		
 		// Add button to add new custom tag

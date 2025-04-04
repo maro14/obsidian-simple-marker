@@ -6,8 +6,10 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 
 - Quickly apply different text formatting styles with simple commands
 - Toggle formatting on/off with the same command
-- Supports highlighting, bold, italic, and more text styles
+- Supports highlighting, bold, italic, strikethrough, and code text styles
 - Works with both selected text and current line
+- Quick mark command using your default marker style
+- Custom tags for personalized formatting
 - Customizable through settings
 
 ## How to Use
@@ -17,8 +19,15 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
    - "Highlight text" - Wraps text with == markers
    - "Bold text" - Wraps text with ** markers
    - "Italic text" - Wraps text with _ markers
+   - "Strikethrough text" - Wraps text with ~~ markers
+   - "Inline code" - Wraps text with ` markers
+   - "Quick mark with default style" - Uses your default marker style from settings
 
 If text is already formatted with a specific style, using the same command will remove that formatting.
+
+### Examples
+
+Original text:
 
 ## Installation
 
