@@ -1,96 +1,62 @@
-# Obsidian Sample Plugin
+# Obsidian Simple Marker
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A lightweight plugin for Obsidian that allows you to easily mark and highlight text in your notes.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+- Quickly apply different text formatting styles with simple commands
+- Toggle formatting on/off with the same command
+- Supports highlighting, bold, italic, and more text styles
+- Works with both selected text and current line
+- Customizable through settings
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## How to Use
 
-## First time developing plugins?
+1. Select text you want to format or place your cursor on a line
+2. Use one of the following commands from the command palette:
+   - "Highlight text" - Wraps text with == markers
+   - "Bold text" - Wraps text with ** markers
+   - "Italic text" - Wraps text with _ markers
 
-Quick starting guide for new plugin devs:
+If text is already formatted with a specific style, using the same command will remove that formatting.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Installation
 
-## Releasing new releases
+### From Obsidian Community Plugins
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. Open Obsidian Settings
+2. Go to Community Plugins and disable Safe Mode if necessary
+3. Click Browse and search for "Simple Marker"
+4. Install the plugin and enable it
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+### Manual Installation
 
-## Adding your plugin to the community plugin list
+1. Download the latest release from the GitHub repository
+2. Extract the files into your vault's plugins folder: `<vault>/.obsidian/plugins/obsidian-simple-marker/`
+3. Reload Obsidian
+4. Enable the plugin in the Community Plugins settings
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## Configuration
 
-## How to use
+The plugin settings allow you to:
+- Customize default behavior
+- Add custom tags for marking text
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+## Development
 
-## Manually installing the plugin
+This plugin is built using TypeScript and the Obsidian API.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+### Building from Source
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+1. Clone this repository
+2. Make sure you have Node.js installed (v16 or newer)
+3. Run `npm install` to install dependencies
+4. Run `npm run dev` to start compilation in watch mode
 
-## Funding URL
+## Support
 
-You can include funding URLs where people who use your plugin can financially support it.
+If you encounter any issues or have feature requests, please file an issue on the GitHub repository.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+## License
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
-
-If you have multiple URLs, you can also do:
-
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+This project is licensed under the MIT License.

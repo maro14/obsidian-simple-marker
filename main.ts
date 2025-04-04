@@ -87,39 +87,54 @@ export default class SimpleMarker extends Plugin {
 		const cursorLineNumber = cursor.line;
 		let cursorIndex = cursor.ch;
 		let line = editor.getLine(cursorLineNumber);
-
+	
 		const selection = editor.getSelection();
 		let isSelection = false;
-
+	
 		if (selection.trim() != '') {
 			isSelection = true;
 			line = selection;
 		}
-
+	
 		if (line.trim() === '') {
 			editor.replaceSelection(wrapPrefix);
 			return;
 			
 		}
-
+	
 		const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIndentifyingSubstring);
-
+	
 		if (isSelection) {
 			editor.replaceSelection(wrappedLine);
 		} else {
 			editor.setLine(cursorLineNumber, wrappedLine);
-
-		const isNowWrapped = (wrappedLine.length - line.length) > 0;
-		cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
-		editor.setCursor(cursorLineNumber, cursorIndex);
-
+	
+			const isNowWrapped = (wrappedLine.length - line.length) > 0;
+			cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
+			editor.setCursor(cursorLineNumber, cursorIndex);
+		} // Added missing closing brace here
 	}
 	
 	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIndentifyingSubstring?: string) {
 		const wrapPrefixIndex = content.indexOf(wrapPrefixIndentifyingSubstring || wrapPrefix);
+		const wrapPostfixIndex = content.indexOf(wrapPostfix);
+		const isWrapped = wrapPrefixIndex != -1 && wrapPostfixIndex != -1 && wrapPrefixIndex < wrapPostfixIndex;
+	
+		let resolvedContent = content;
+	
+		if (isWrapped) {
+			const beforeWrap = content.slice(0, wrapPrefixIndex);
+			const wrappeContent = content.slice(wrapPrefixIndex + wrapPrefix.length, wrapPostfixIndex);
+			const afterPostfixContent = content.slice(wrapPostfixIndex + wrapPostfix.length);
+			resolvedContent = beforeWrap + wrappeContent + afterPostfixContent;
+		} else {
+			// Completed the else block
+			resolvedContent = wrapPrefix + content + wrapPostfix;
+		}
 		
+		return resolvedContent;
 	}
-
+	
 	onunload() {
 
 	}
@@ -173,4 +188,30 @@ class SimpleMakerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 	}
+}
+
+// Add marker-specific commands
+this.addCommand({
+	id: 'mark-highlight',
+	name: 'Highlight text',
+	editorCallback: (editor: Editor, view: MarkdownView) => {
+		this.handleWraperComand(editor, view, '==', '==');
+	}
+});
+
+this.addCommand({
+	id: 'mark-bold',
+	name: 'Bold text',
+	editorCallback: (editor: Editor, view: MarkdownView) => {
+		this.handleWraperComand(editor, view, '**', '**');
+	}
+});
+
+this.addCommand({
+	id: 'mark-italic',
+	name: 'Italic text',
+	editorCallback: (editor: Editor, view: MarkdownView) => {
+		this.handleWraperComand(editor, view, '_', '_');
+	}
+});
 }
