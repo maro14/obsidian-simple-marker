@@ -215,10 +215,14 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 			const setting = new Setting(containerEl)
 				.setName(`Custom tag ${index + 1}`);
 				
-			// Validate tag format and show warning if invalid
+			// Validate that the tag follows the required format:
+			// 1. Must contain a pipe character '|' to separate prefix and postfix
+			// 2. Must have exactly two parts when split by the pipe
+			// 3. Both prefix and postfix must be non-empty after trimming whitespace
+			// This ensures tags will work correctly when applied to text
 			const isValidFormat = tag.includes('|') && tag.split('|').length === 2 && 
 									tag.split('|')[0].trim() !== '' && tag.split('|')[1].trim() !== '';
-							
+			
 			if (tag && !isValidFormat) {
 				setting.setDesc('⚠️ Invalid format. Please use prefix|postfix format.');
 				setting.settingEl.addClass('simple-marker-invalid-tag');

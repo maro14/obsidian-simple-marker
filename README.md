@@ -25,18 +25,7 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 
 If text is already formatted with a specific style, using the same command will remove that formatting.
 
-### Examples
-
-Original text:
-
 ## Installation
-
-### From Obsidian Community Plugins
-
-1. Open Obsidian Settings
-2. Go to Community Plugins and disable Safe Mode if necessary
-3. Click Browse and search for "Simple Marker"
-4. Install the plugin and enable it
 
 ### Manual Installation
 
