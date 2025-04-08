@@ -10,6 +10,7 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 - **Flexible Selection**: Works with both selected text and current line
 - **Default Style**: Quick mark command using your preferred style
 - **Custom Tags**: Create your own formatting with custom tags
+- **Categories**: Organize your custom tags into categories
 - **User-Friendly**: Simple settings interface for customization
 
 ## 🚀 How to Use
@@ -45,7 +46,9 @@ The plugin settings allow you to:
 - **Set Default Style**: Choose which marker style to use with the quick mark command
 - **Custom Tags**: Create and manage your own custom formatting tags
   - Format: `prefix|postfix` (e.g., `<mark>|</mark>`)
-  - Each custom tag gets its own command in the command palette
+  - Assign categories to organize your tags
+  - Each custom tag gets its own command in the command palette, grouped by category
+  - Categories appear in the command palette for easier navigation
 
 ## 🛠️ Development
 
@@ -55,8 +58,8 @@ This plugin is built using TypeScript and the Obsidian API.
 
 1. Clone this repository
 2. Make sure you have Node.js installed (v16 or newer)
-3. Run `npm install` to install dependencies
-4. Run `npm run dev` to start compilation in watch mode
+3. Run `pnpm install` to install dependencies
+4. Run `pnpm run dev` to start compilation in watch mode
 
 ## 🤝 Support
 

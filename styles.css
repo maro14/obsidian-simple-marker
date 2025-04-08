@@ -1,8 +1,16 @@
-/*
+/* Custom tag validation styling */
+.simple-marker-invalid-tag {
+    border-left: 3px solid var(--text-error);
+    padding-left: 8px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Category field styling */
+.setting-item input[type="text"][placeholder="Category"] {
+    width: 120px;
+    margin-right: 8px;
+}
 
-If your plugin does not need CSS, delete this file.
-
-*/
+/* Custom tag input styling */
+.setting-item input[type="text"][placeholder="prefix|postfix"] {
+    width: 180px;
+}

@@ -262,6 +262,15 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 	}
 
 	// Displays the settings UI
+	private validateCategory(category: string): string {
+		const sanitized = category.trim();
+		if (sanitized.length > 50) {
+			new Notice('Category name too long. Maximum 50 characters allowed.');
+			return sanitized.substring(0, 50);
+		}
+		return sanitized;
+	}
+
 	display(): void {
 		const {containerEl} = this;
 
@@ -336,22 +345,4 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 					this.display();
 				}));
 	}
-
-private validateCategory(category: string): string {
-    const sanitized = category.trim();
-    if (sanitized.length > 50) {
-        new Notice('Category name too long. Maximum 50 characters allowed.');
-        return sanitized.substring(0, 50);
-    }
-    return sanitized;
-}
-
-// Use in settings
-.addText(text => text
-    .setPlaceholder('Category')
-    .setValue(tag.category)
-    .onChange(async (value) => {
-        tag.category = this.validateCategory(value);
-        await this.plugin.saveSettings();
-    }))
 }
