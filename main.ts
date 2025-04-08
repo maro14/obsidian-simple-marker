@@ -170,11 +170,21 @@ export default class SimpleMarker extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		try {
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		} catch (error) {
+			console.error('Simple Marker: Error loading settings', error);
+			new Notice('Error loading settings. Check console for details.');
+		}
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		try {
+			await this.saveData(this.settings);
+		} catch (error) {
+			console.error('Simple Marker: Error saving settings', error);
+			new Notice('Error saving settings. Check console for details.');
+		}
 	}
 }
 
