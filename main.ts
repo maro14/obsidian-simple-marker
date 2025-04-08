@@ -1,24 +1,29 @@
 import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
+// Interface defining the settings structure for the SimpleMarker plugin
 interface SimpleMarkerSettings {
-	defaultMarker: string;
-	customTags: string[];
+	defaultMarker: string; // Default marker type used for quick marking
+	customTags: string[];  // Array of custom tags defined by the user
 }
 
+// Default settings for the plugin
 const DEFAULT_SETTINGS: SimpleMarkerSettings = {
 	defaultMarker: 'highlight',
 	customTags: []
 }
 
+// Main class for the SimpleMarker plugin
 export default class SimpleMarker extends Plugin {
 	settings: SimpleMarkerSettings;
 
+	// Method called when the plugin is loaded
 	async onload() {
-		await this.loadSettings();
+		await this.loadSettings(); // Load settings from storage
 
+		// Add a settings tab to the Obsidian interface
 		this.addSettingTab(new SimpleMarkerSettingTab(this.app, this));
 
-		// Add a quick mark command that uses the default marker
+		// Add a command for quick marking using the default marker
 		this.addCommand({
 			id: 'quick-mark',
 			name: 'Quick mark with default style',
@@ -26,6 +31,7 @@ export default class SimpleMarker extends Plugin {
 				const markerType = this.settings.defaultMarker;
 				let prefix = '', postfix = '';
 				
+				// Determine prefix and postfix based on marker type
 				switch(markerType) {
 					case 'highlight': prefix = postfix = '=='; break;
 					case 'bold': prefix = postfix = '**'; break;
@@ -34,11 +40,12 @@ export default class SimpleMarker extends Plugin {
 					case 'code': prefix = postfix = '`'; break;
 				}
 				
+				// Apply the marker to the selected text or cursor position
 				this.handleWrapperCommand(editor, view, prefix, postfix);
 			}
 		});
 		
-		// Add commands for custom tags
+		// Add commands for each custom tag defined by the user
 		this.settings.customTags.forEach((tag, index) => {
 			if (tag.trim()) {
 				const parts = tag.split('|');
@@ -57,7 +64,7 @@ export default class SimpleMarker extends Plugin {
 			}
 		});
 
-		// Add marker-specific commands
+		// Add specific commands for common markers
 		this.addCommand({
 			id: 'mark-highlight',
 			name: 'Highlight text',
@@ -82,7 +89,6 @@ export default class SimpleMarker extends Plugin {
 			}
 		});
 		
-		// Add more useful markers
 		this.addCommand({
 			id: 'mark-strikethrough',
 			name: 'Strikethrough text',
@@ -100,6 +106,7 @@ export default class SimpleMarker extends Plugin {
 		});
 	}
 	
+	// Handles the wrapping of selected text or cursor position with specified markers
 	private handleWrapperCommand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
 		try {
 			const cursor = editor.getCursor();
@@ -137,6 +144,7 @@ export default class SimpleMarker extends Plugin {
 		}
 	}
 	
+	// Toggles the wrapping of content with specified markers
 	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
 		try {
 			if (!wrapPrefix || !wrapPostfix) {
@@ -165,10 +173,12 @@ export default class SimpleMarker extends Plugin {
 		}
 	}
 	
+	// Method called when the plugin is unloaded
 	onunload() {
-
+		// Cleanup tasks can be performed here
 	}
 
+	// Loads settings from storage
 	async loadSettings() {
 		try {
 			this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -178,6 +188,7 @@ export default class SimpleMarker extends Plugin {
 		}
 	}
 
+	// Saves settings to storage
 	async saveSettings() {
 		try {
 			await this.saveData(this.settings);
@@ -188,6 +199,7 @@ export default class SimpleMarker extends Plugin {
 	}
 }
 
+// Class for managing the settings tab in the Obsidian interface
 class SimpleMarkerSettingTab extends PluginSettingTab {
 	plugin: SimpleMarker;
 
@@ -196,11 +208,13 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	// Displays the settings UI
 	display(): void {
 		const {containerEl} = this;
 
 		containerEl.empty();
 
+		// Dropdown for selecting the default marker type
 		new Setting(containerEl)
 			.setName('Default marker')
 			.setDesc('Choose the default marker type when using the quick mark command')
@@ -216,20 +230,15 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 				
-		// Add a section for custom tags
+		// Section for managing custom tags
 		containerEl.createEl('h3', {text: 'Custom Tags'});
 		containerEl.createEl('p', {text: 'Format: prefix|postfix (e.g., <mark>|</mark>)'});
 		
-		// Display existing custom tags
+		// Display existing custom tags with validation
 		this.plugin.settings.customTags.forEach((tag, index) => {
 			const setting = new Setting(containerEl)
 				.setName(`Custom tag ${index + 1}`);
 				
-			// Validate that the tag follows the required format:
-			// 1. Must contain a pipe character '|' to separate prefix and postfix
-			// 2. Must have exactly two parts when split by the pipe
-			// 3. Both prefix and postfix must be non-empty after trimming whitespace
-			// This ensures tags will work correctly when applied to text
 			const isValidFormat = tag.includes('|') && tag.split('|').length === 2 && 
 									tag.split('|')[0].trim() !== '' && tag.split('|')[1].trim() !== '';
 			
@@ -254,7 +263,7 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 				}));
 		});
 		
-		// Add button to add new custom tag
+		// Button to add new custom tags
 		new Setting(containerEl)
 			.setName('Add custom tag')
 			.setDesc('Add a new custom tag for marking text')
