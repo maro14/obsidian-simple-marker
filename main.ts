@@ -1,11 +1,21 @@
 import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 // Interface defining the settings structure for the SimpleMarker plugin
+/**
+ * Interface for custom tag definition
+ * @property {string} tag - The tag in format "prefix|postfix"
+ * @property {string} category - Optional category for organizing tags
+ */
 interface CustomTag {
     tag: string;
     category: string;
 }
 
+/**
+ * Plugin settings interface
+ * @property {string} defaultMarker - The default marker style to use
+ * @property {CustomTag[]} customTags - Array of user-defined custom tags
+ */
 interface SimpleMarkerSettings {
     defaultMarker: string;
     customTags: CustomTag[];
@@ -112,34 +122,42 @@ export default class SimpleMarker extends Plugin {
 		// Group tags by category
 		const tagsByCategory = new Map<string, CustomTag[]>();
 		this.settings.customTags.forEach(tag => {
-		    const category = tag.category || 'Uncategorized';
-		    if (!tagsByCategory.has(category)) {
-		        tagsByCategory.set(category, []);
-		    }
-		    tagsByCategory.get(category)?.push(tag);
+			const category = tag.category || 'Uncategorized';
+			if (!tagsByCategory.has(category)) {
+				tagsByCategory.set(category, []);
+			}
+			tagsByCategory.get(category)?.push(tag);
 		});
 		
 		// Add commands for each custom tag, grouped by category
 		tagsByCategory.forEach((tags, category) => {
-		    tags.forEach((customTag, index) => {
-		        if (customTag.tag.trim()) {
-		            const parts = customTag.tag.split('|');
-		            if (parts.length === 2 && parts[0] && parts[1]) {
-		                const [prefix, postfix] = parts;
-		                this.addCommand({
-		                    id: `mark-custom-${category}-${index}`,
-		                    name: `${category}: ${prefix}...${postfix}`,
-		                    editorCallback: (editor: Editor, view: MarkdownView) => {
-		                        this.handleWrapperCommand(editor, view, prefix, postfix);
-		                    }
-		                });
-		            }
-		        }
-		    });
+			tags.forEach((customTag, index) => {
+				if (customTag.tag.trim()) {
+					const parts = customTag.tag.split('|');
+					if (parts.length === 2 && parts[0] && parts[1]) {
+						const [prefix, postfix] = parts;
+						this.addCommand({
+							id: `mark-custom-${category}-${index}`,
+							name: `${category}: ${prefix}...${postfix}`,
+							editorCallback: (editor: Editor, view: MarkdownView) => {
+								this.handleWrapperCommand(editor, view, prefix, postfix);
+							}
+						});
+					}
+				}
+			});
 		});
 	}
 	
 	// Handles the wrapping of selected text or cursor position with specified markers
+	/**
+	 * Handles wrapping selected text or current line with specified markers
+	 * @param editor - The active editor instance
+	 * @param view - The current markdown view
+	 * @param wrapPrefix - The prefix marker to apply
+	 * @param wrapPostfix - The postfix marker to apply
+	 * @param wrapPrefixIdentifyingSubstring - Optional substring to identify existing markers
+	 */
 	private handleWrapperCommand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
 		try {
 			const cursor = editor.getCursor();
@@ -197,7 +215,17 @@ export default class SimpleMarker extends Plugin {
 		}
 	}
 	
-	// Toggles the wrapping of content with specified markers
+	/**
+	 * Toggles the wrapping of content with specified markers
+	 * If content is already wrapped, it removes the wrapping
+	 * If content is not wrapped, it adds the wrapping
+	 * 
+	 * @param content - The text content to process
+	 * @param wrapPrefix - The prefix marker
+	 * @param wrapPostfix - The postfix marker
+	 * @param wrapPrefixIdentifyingSubstring - Optional substring to identify existing markers
+	 * @returns The processed content with toggled wrapping
+	 */
 	private toggleContentWrap(content: string, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
 		try {
 			if (!wrapPrefix || !wrapPostfix) {
