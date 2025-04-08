@@ -1,15 +1,19 @@
 import { App, Editor, MarkdownView, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 // Interface defining the settings structure for the SimpleMarker plugin
-interface SimpleMarkerSettings {
-	defaultMarker: string; // Default marker type used for quick marking
-	customTags: string[];  // Array of custom tags defined by the user
+interface CustomTag {
+    tag: string;
+    category: string;
 }
 
-// Default settings for the plugin
+interface SimpleMarkerSettings {
+    defaultMarker: string;
+    customTags: CustomTag[];
+}
+
 const DEFAULT_SETTINGS: SimpleMarkerSettings = {
-	defaultMarker: 'highlight',
-	customTags: []
+    defaultMarker: 'highlight',
+    customTags: []
 }
 
 // Main class for the SimpleMarker plugin
@@ -46,9 +50,9 @@ export default class SimpleMarker extends Plugin {
 		});
 		
 		// Add commands for each custom tag defined by the user
-		this.settings.customTags.forEach((tag, index) => {
-			if (tag.trim()) {
-				const parts = tag.split('|');
+		this.settings.customTags.forEach((customTag, index) => {
+			if (customTag.tag.trim()) {
+				const parts = customTag.tag.split('|');
 				if (parts.length === 2 && parts[0] && parts[1]) {
 					const [prefix, postfix] = parts;
 					this.addCommand({
@@ -59,7 +63,7 @@ export default class SimpleMarker extends Plugin {
 						}
 					});
 				} else {
-					console.warn(`Simple Marker: Invalid custom tag format at index ${index}: "${tag}". Expected format: "prefix|postfix"`);
+					console.warn(`Simple Marker: Invalid custom tag format at index ${index}: "${customTag.tag}". Expected format: "prefix|postfix"`);
 				}
 			}
 		});
@@ -104,6 +108,35 @@ export default class SimpleMarker extends Plugin {
 				this.handleWrapperCommand(editor, view, '`', '`');
 			}
 		});
+
+		// Group tags by category
+		const tagsByCategory = new Map<string, CustomTag[]>();
+		this.settings.customTags.forEach(tag => {
+		    const category = tag.category || 'Uncategorized';
+		    if (!tagsByCategory.has(category)) {
+		        tagsByCategory.set(category, []);
+		    }
+		    tagsByCategory.get(category)?.push(tag);
+		});
+		
+		// Add commands for each custom tag, grouped by category
+		tagsByCategory.forEach((tags, category) => {
+		    tags.forEach((customTag, index) => {
+		        if (customTag.tag.trim()) {
+		            const parts = customTag.tag.split('|');
+		            if (parts.length === 2 && parts[0] && parts[1]) {
+		                const [prefix, postfix] = parts;
+		                this.addCommand({
+		                    id: `mark-custom-${category}-${index}`,
+		                    name: `${category}: ${prefix}...${postfix}`,
+		                    editorCallback: (editor: Editor, view: MarkdownView) => {
+		                        this.handleWrapperCommand(editor, view, prefix, postfix);
+		                    }
+		                });
+		            }
+		        }
+		    });
+		});
 	}
 	
 	// Handles the wrapping of selected text or cursor position with specified markers
@@ -113,27 +146,47 @@ export default class SimpleMarker extends Plugin {
 			const cursorLineNumber = cursor.line;
 			let cursorIndex = cursor.ch;
 			let line = editor.getLine(cursorLineNumber);
-		
+			
 			const selection = editor.getSelection();
 			let isSelection = false;
-		
+			
 			if (selection.trim() != '') {
 				isSelection = true;
 				line = selection;
 			}
-		
+
 			if (line.trim() === '') {
-				editor.replaceSelection(wrapPrefix);
+				editor.transaction({
+					changes: [{
+						from: cursor,
+						to: cursor,
+						text: wrapPrefix
+					}]
+				});
 				return;
 			}
-		
+
 			const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIdentifyingSubstring);
-		
+
 			if (isSelection) {
-				editor.replaceSelection(wrappedLine);
+				editor.transaction({
+					changes: [{
+						from: editor.getCursor('from'),
+						to: editor.getCursor('to'),
+						text: wrappedLine
+					}]
+				});
 			} else {
-				editor.setLine(cursorLineNumber, wrappedLine);
-		
+				const lineStart = { line: cursorLineNumber, ch: 0 };
+				const lineEnd = { line: cursorLineNumber, ch: line.length };
+				editor.transaction({
+					changes: [{
+						from: lineStart,
+						to: lineEnd,
+						text: wrappedLine
+					}]
+				});
+			
 				const isNowWrapped = (wrappedLine.length - line.length) > 0;
 				cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
 				editor.setCursor(cursorLineNumber, cursorIndex);
@@ -239,8 +292,8 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 			const setting = new Setting(containerEl)
 				.setName(`Custom tag ${index + 1}`);
 				
-			const isValidFormat = tag.includes('|') && tag.split('|').length === 2 && 
-									tag.split('|')[0].trim() !== '' && tag.split('|')[1].trim() !== '';
+			const isValidFormat = tag.tag.includes('|') && tag.tag.split('|').length === 2 &&
+									tag.tag.split('|')[0].trim() !== '' && tag.tag.split('|')[1].trim() !== '';
 			
 			if (tag && !isValidFormat) {
 				setting.setDesc('⚠️ Invalid format. Please use prefix|postfix format.');
@@ -248,11 +301,19 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 			}
 			
 			setting.addText(text => text
-				.setValue(tag)
+				.setValue(tag.tag)
+				.setPlaceholder('prefix|postfix')
 				.onChange(async (value) => {
-					this.plugin.settings.customTags[index] = value;
+					tag.tag = value;
 					await this.plugin.saveSettings();
-					this.display(); // Refresh to update validation
+					this.display();
+				}))
+			.addText(text => text
+				.setPlaceholder('Category')
+				.setValue(tag.category)
+				.onChange(async (value) => {
+					tag.category = this.validateCategory(value);
+					await this.plugin.saveSettings();
 				}))
 			.addButton(button => button
 				.setButtonText('Remove')
@@ -270,9 +331,27 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 			.addButton(button => button
 				.setButtonText('Add')
 				.onClick(async () => {
-					this.plugin.settings.customTags.push('');
+					this.plugin.settings.customTags.push({ tag: '', category: '' });
 					await this.plugin.saveSettings();
 					this.display();
 				}));
 	}
+
+private validateCategory(category: string): string {
+    const sanitized = category.trim();
+    if (sanitized.length > 50) {
+        new Notice('Category name too long. Maximum 50 characters allowed.');
+        return sanitized.substring(0, 50);
+    }
+    return sanitized;
+}
+
+// Use in settings
+.addText(text => text
+    .setPlaceholder('Category')
+    .setValue(tag.category)
+    .onChange(async (value) => {
+        tag.category = this.validateCategory(value);
+        await this.plugin.saveSettings();
+    }))
 }
