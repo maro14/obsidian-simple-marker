@@ -17,7 +17,7 @@ interface CustomTag {
  * @property {CustomTag[]} customTags - Array of user-defined custom tags
  */
 interface SimpleMarkerSettings {
-    defaultMarker: string;
+    defaultMarker: MarkerType; // Update this line to use MarkerType instead of string
     customTags: CustomTag[];
 }
 
@@ -240,33 +240,49 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
 
     display(): void {
         const {containerEl} = this;
-
         containerEl.empty();
 
-        // Dropdown for selecting the default marker type
+        this.addDefaultMarkerSetting(containerEl);
+        this.addCustomTagsSection(containerEl);
+    }
+
+    private addDefaultMarkerSetting(containerEl: HTMLElement): void {
+        const markerOptions = Object.entries(MARKER_TYPES).map(([id, config]) => ({
+            value: id,
+            display: config.name
+        }));
+
         new Setting(containerEl)
             .setName('Default marker')
             .setDesc('Choose the default marker type when using the quick mark command')
-            .addDropdown(dropdown => dropdown
-                .addOption('highlight', 'Highlight')
-                .addOption('bold', 'Bold')
-                .addOption('italic', 'Italic')
-                .addOption('strikethrough', 'Strikethrough')
-                .addOption('code', 'Code')
-                .setValue(this.plugin.settings.defaultMarker)
-                .onChange(async (value) => {
-                    this.plugin.settings.defaultMarker = value;
-                    await this.plugin.saveSettings();
-                }));
+            .addDropdown(dropdown => {
+                markerOptions.forEach(option => 
+                    dropdown.addOption(option.value, option.display)
+                );
                 
-        // Section for managing custom tags
+                return dropdown
+                    .setValue(this.plugin.settings.defaultMarker)
+                    .onChange(async (value: MarkerType) => {
+                        this.plugin.settings.defaultMarker = value;
+                        await this.plugin.saveSettings();
+                    });
+            });
+    }
+
+    private addCustomTagsSection(containerEl: HTMLElement): void {
         containerEl.createEl('h3', {text: 'Custom Tags'});
         containerEl.createEl('p', {text: 'Format: prefix|postfix (e.g., <mark>|</mark>)'});
         
-        // Display existing custom tags with validation
-        this.plugin.settings.customTags.forEach((tag, index) => {
-            const setting = new Setting(containerEl)
-                .setName(`Custom tag ${index + 1}`);
+        this.plugin.settings.customTags.forEach((tag, index) => 
+            this.createCustomTagSetting(containerEl, tag, index)
+        );
+
+        this.addNewCustomTagButton(containerEl);
+    }
+
+    createCustomTagSetting(containerEl: HTMLElement, tag: CustomTag, index: number): void {
+        const setting = new Setting(containerEl)
+            .setName(`Custom tag ${index + 1}`);
                 
             const isValidFormat = tag.tag.includes('|') && tag.tag.split('|').length === 2 &&
                                     tag.tag.split('|')[0].trim() !== '' && tag.tag.split('|')[1].trim() !== '';
@@ -290,7 +306,7 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     tag.category = this.validateCategory(value);
                     await this.plugin.saveSettings();
-                }));
+                }))  // Remove the semicolon here
             .addButton(button => button
                 .setButtonText('Remove')
                 .onClick(async () => {
@@ -298,9 +314,9 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                     this.display();
                 }));
-        });
-        
-        // Button to add new custom tags
+    }
+
+    addNewCustomTagButton(containerEl: HTMLElement): void {
         new Setting(containerEl)
             .setName('Add custom tag')
             .setDesc('Add a new custom tag for marking text')
@@ -313,3 +329,6 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
                 }));
     }
 }
+
+// Add this type definition before the interfaces
+type MarkerType = keyof typeof MARKER_TYPES;
