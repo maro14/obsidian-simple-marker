@@ -12,9 +12,11 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 - **Custom Tags**: Create your own formatting with custom tags
 - **Categories**: Organize your custom tags into categories
 - **User-Friendly**: Simple settings interface for customization
+- **Smart Wrapping**: Automatically handles nested and existing formatting
 
 ## 🚀 How to Use
 
+### Basic Usage
 1. Select text you want to format or place your cursor on a line
 2. Open the command palette (`Ctrl+P` or `Cmd+P`)
 3. Choose one of the formatting commands:
@@ -28,43 +30,46 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 | "Inline code" | `` `text` `` | `code text` |
 | "Quick mark with default style" | Uses your default setting | |
 
-**Tip**: If text is already formatted with a specific style, using the same command will remove that formatting.
+### Advanced Usage
+- **Toggle Formatting**: Run the same command again to remove formatting
+- **Empty Lines**: Places just the prefix when used on empty lines
+- **Multiple Selections**: Works with Obsidian's multi-cursor feature
 
 ## 📥 Installation
 
-### Manual Installation
 
-1. Download the latest release from the GitHub repository
-2. Extract the files into your vault's plugins folder: `<vault>/.obsidian/plugins/obsidian-simple-marker/`
+### Manual Installation
+1. Download the [latest release](https://github.com/your-repo/obsidian-simple-marker/releases)
+2. Extract to your vault's plugins folder:  
+   `c:\Users\user\Documents\obsidian\My Coding Vault\.obsidian\plugins\obsidian-simple-marker\`
 3. Reload Obsidian
-4. Enable the plugin in the Community Plugins settings
+4. Enable the plugin in Community Plugins settings
 
 ## ⚙️ Configuration
 
-The plugin settings allow you to:
+### Default Marker
+Choose your preferred default style for the quick mark command:
+- Highlight (`==text==`)
+- Bold (`**text**`)
+- Italic (`_text_`)
+- Strikethrough (`~~text~~`)
+- Code (`` `text` ``)
 
-- **Set Default Style**: Choose which marker style to use with the quick mark command
-- **Custom Tags**: Create and manage your own custom formatting tags
-  - Format: `prefix|postfix` (e.g., `<mark>|</mark>`)
-  - Assign categories to organize your tags
-  - Each custom tag gets its own command in the command palette, grouped by category
-  - Categories appear in the command palette for easier navigation
+### Custom Tags
+Create your own formatting patterns:
+- Format: `prefix|postfix` (e.g., `<mark>|</mark>` creates `<mark>text</mark>`)
+- Assign categories for better organization
+- Invalid formats show visual warnings
 
 ## 🛠️ Development
 
-This plugin is built using TypeScript and the Obsidian API.
+### Prerequisites
+- Node.js v16+
+- pnpm
 
-### Building from Source
-
-1. Clone this repository
-2. Make sure you have Node.js installed (v16 or newer)
-3. Run `pnpm install` to install dependencies
-4. Run `pnpm run dev` to start compilation in watch mode
-
-## 🤝 Support
-
-If you encounter any issues or have feature requests, please file an issue on the GitHub repository.
-
-## 📄 License
-
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+### Setup
+```bash
+git clone https://github.com/your-repo/obsidian-simple-marker.git
+cd obsidian-simple-marker
+pnpm install
+```
