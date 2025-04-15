@@ -70,17 +70,32 @@ export default class SimpleMarker extends Plugin {
         });
     }
 
+    /**
+     * Parses a custom tag string into prefix and postfix parts
+     * @param tag - The tag string in format "prefix|postfix"
+     * @returns An array containing [prefix, postfix] or null if invalid
+     */
+    private parseCustomTag(tag: string): [string, string] | null {
+        if (!this.isValidCustomTag(tag)) {
+            return null;
+        }
+        
+        const [prefix, postfix] = tag.split('|');
+        return [prefix.trim(), postfix.trim()];
+    }
+    
     private registerCustomTagCommands() {
         const tagsByCategory = this.groupTagsByCategory();
         
         tagsByCategory.forEach((tags, category) => {
             tags.forEach((customTag, index) => {
-                if (!this.isValidCustomTag(customTag.tag)) {
+                const parsedTag = this.parseCustomTag(customTag.tag);
+                if (!parsedTag) {
                     console.warn(`Invalid custom tag: "${customTag.tag}"`);
                     return;
                 }
 
-                const [prefix, postfix] = customTag.tag.split('|');
+                const [prefix, postfix] = parsedTag;
                 this.addCommand({
                     id: `mark-custom-${category}-${index}`,
                     name: `${category}: ${prefix}...${postfix}`,
@@ -113,6 +128,23 @@ export default class SimpleMarker extends Plugin {
                parts[1].trim() !== '';
     }
 
+    /**
+     * Performs an editor transaction to replace text
+     * @param editor - The editor instance
+     * @param from - Starting position
+     * @param to - Ending position
+     * @param text - New text to insert
+     */
+    private performEditorTransaction(editor: Editor, from: any, to: any, text: string): void {
+        editor.transaction({
+            changes: [{
+                from: from,
+                to: to,
+                text: text
+            }]
+        });
+    }
+    
     private handleWrapperCommand(editor: Editor, view: MarkdownView, wrapPrefix: string, wrapPostfix: string, wrapPrefixIdentifyingSubstring?: string) {
         try {
             const cursor = editor.getCursor();
@@ -129,36 +161,23 @@ export default class SimpleMarker extends Plugin {
             }
 
             if (line.trim() === '') {
-                editor.transaction({
-                    changes: [{
-                        from: cursor,
-                        to: cursor,
-                        text: wrapPrefix
-                    }]
-                });
+                this.performEditorTransaction(editor, cursor, cursor, wrapPrefix);
                 return;
             }
 
             const wrappedLine = this.toggleContentWrap(line, wrapPrefix, wrapPostfix, wrapPrefixIdentifyingSubstring);
 
             if (isSelection) {
-                editor.transaction({
-                    changes: [{
-                        from: editor.getCursor('from'),
-                        to: editor.getCursor('to'),
-                        text: wrappedLine
-                    }]
-                });
+                this.performEditorTransaction(
+                    editor, 
+                    editor.getCursor('from'), 
+                    editor.getCursor('to'), 
+                    wrappedLine
+                );
             } else {
                 const lineStart = { line: cursorLineNumber, ch: 0 };
                 const lineEnd = { line: cursorLineNumber, ch: line.length };
-                editor.transaction({
-                    changes: [{
-                        from: lineStart,
-                        to: lineEnd,
-                        text: wrappedLine
-                    }]
-                });
+                this.performEditorTransaction(editor, lineStart, lineEnd, wrappedLine);
             
                 const isNowWrapped = (wrappedLine.length - line.length) > 0;
                 cursorIndex += (isNowWrapped ? 1: -1) * (wrapPrefix.length);
@@ -204,7 +223,14 @@ export default class SimpleMarker extends Plugin {
 
     async loadSettings() {
         try {
-            this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+            const data = await this.loadData();
+            
+            // Validate defaultMarker is a valid MarkerType
+            if (data && data.defaultMarker && !Object.keys(MARKER_TYPES).includes(data.defaultMarker)) {
+                data.defaultMarker = DEFAULT_SETTINGS.defaultMarker;
+            }
+            
+            this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
         } catch (error) {
             console.error('Simple Marker: Error loading settings', error);
             new Notice('Error loading settings. Check console for details.');
@@ -283,14 +309,14 @@ class SimpleMarkerSettingTab extends PluginSettingTab {
     createCustomTagSetting(containerEl: HTMLElement, tag: CustomTag, index: number): void {
         const setting = new Setting(containerEl)
             .setName(`Custom tag ${index + 1}`);
-                
-            const isValidFormat = tag.tag.includes('|') && tag.tag.split('|').length === 2 &&
-                                    tag.tag.split('|')[0].trim() !== '' && tag.tag.split('|')[1].trim() !== '';
-            
-            if (tag && !isValidFormat) {
-                setting.setDesc('⚠️ Invalid format. Please use prefix|postfix format.');
-                setting.settingEl.addClass('simple-marker-invalid-tag');
-            }
+        
+        // Replace this duplicate validation logic
+        const isValidFormat = this.plugin.isValidCustomTag(tag.tag);
+        
+        if (tag && !isValidFormat) {
+            setting.setDesc('⚠️ Invalid format. Please use prefix|postfix format.');
+            setting.settingEl.addClass('simple-marker-invalid-tag');
+        }
             
             setting.addText(text => text
                 .setValue(tag.tag)
