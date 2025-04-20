@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-simple-marker",
 	"name": "Simple Marker",
-	"version": "1.0.0",
+	"version": "1.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "A lightweight plugin for Obsidian that allows you to easily mark and highlight text in your notes.",
 	"author": "Teheskhiel Fritz",

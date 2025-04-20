@@ -37,7 +37,6 @@ A lightweight plugin for Obsidian that allows you to easily mark and highlight t
 
 ## 📥 Installation
 
-
 ### Manual Installation
 1. Download the [latest release](https://github.com/your-repo/obsidian-simple-marker/releases)
 2. Extract to your vault's plugins folder:  
@@ -69,7 +68,7 @@ Create your own formatting patterns:
 
 ### Setup
 ```bash
-git clone https://github.com/your-repo/obsidian-simple-marker.git
+git clone https://github.com/maro14/obsidian-simple-marker.git
 cd obsidian-simple-marker
 pnpm install
 ```
