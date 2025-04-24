@@ -72,3 +72,53 @@ git clone https://github.com/maro14/obsidian-simple-marker.git
 cd obsidian-simple-marker
 pnpm install
 ```
+
+
+
+          
+Here's an updated version of your README with a new "Troubleshooting & FAQ" section added at the end. This section addresses common issues and provides guidance for users.
+
+```markdown:c:\Users\tehes\Documents\obsidian\My Coding Vault\.obsidian\plugins\obsidian-simple-marker\README.md
+// ... existing code ...
+
+## 🛠️ Development
+
+### Prerequisites
+- Node.js v16+
+- pnpm
+
+### Setup
+```bash
+git clone https://github.com/maro14/obsidian-simple-marker.git
+cd obsidian-simple-marker
+pnpm install
+```
+
+## ❓ Troubleshooting & FAQ
+
+### The plugin doesn't appear in Obsidian after installation
+- Make sure you have extracted the plugin to the correct folder:  
+  `c:\Users\user\Documents\obsidian\your Vault\.obsidian\plugins\obsidian-simple-marker\`
+- Reload Obsidian or restart the app after copying the files.
+- Check that the plugin is enabled in the Community Plugins settings.
+
+### Formatting commands don't work or produce errors
+- Ensure you are using the latest version of Obsidian and the plugin.
+- Check the console (Ctrl+Shift+I → Console tab) for error messages and report them on the [GitHub Issues page](https://github.com/maro14/obsidian-simple-marker/issues).
+- Try disabling other plugins to rule out conflicts.
+
+### Custom tags are not working or show as invalid
+- Make sure your custom tag format is `prefix|postfix` (e.g., `<mark>|</mark>`).
+- Both prefix and postfix must be non-empty.
+- If you see a warning, double-check your input for typos or missing parts.
+
+### My formatting is not toggling off as expected
+- The plugin looks for exact matches of the prefix and postfix. If your text contains similar patterns, toggling may not work as intended.
+- Nested or overlapping formatting may cause unexpected results.
+
+### I lost my custom tags or settings
+- Settings are stored in your vault's `.obsidian/plugins/obsidian-simple-marker/data.json` file.
+- If you accidentally delete or overwrite this file, your settings will be lost. Consider backing up your vault regularly.
+
+### Where can I get help or report bugs?
+- For help, feature requests, or bug reports, please visit the [GitHub repository](https://github.com/maro14/obsidian-simple-marker).
